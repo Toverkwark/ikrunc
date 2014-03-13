@@ -26,6 +26,12 @@ open( OUTPUT, ">", $OutputFile ) or die "Output file $OutputFile is not accessib
 open( REPORT, ">", $ReportFile ) or die "Report file $ReportFile is not accessible.\n";
 
 while ( defined( my $line = <INPUT> ) ) {
+	my $BarcodeMatched;
+	my $PromoterFound;
+	my $PromoterExactlyMatched;
+	my $TracrFound;
+	my $TracrFoundAtCorrectPosition;
+	
 	$RecordsAnalyzed++;
 	if ( !( $RecordsAnalyzed % 100000 ) ) {
 		print "Analyzing record $RecordsAnalyzed\n";
@@ -43,6 +49,7 @@ while ( defined( my $line = <INPUT> ) ) {
 	if ( grep( /$barcode/, @Barcodes ) ) {
 		$CriteriaMatched++;
 		$Results{$barcode}->[0]++;
+		$BarcodeMatched=1;
 	}
 	else {
 		my $MatchedBarcode = MatchBarcode( $barcode, @Barcodes );
@@ -53,6 +60,7 @@ while ( defined( my $line = <INPUT> ) ) {
 			$Results{$barcode}->[1]++;
 			#Change the barcode in the outputfile to the one it was matched to
 			$line2 = $barcode . substr($line2,6,length($line2)-6);
+			$BarcodeMatched=1;
 		}
 	}
 
@@ -62,6 +70,7 @@ while ( defined( my $line = <INPUT> ) ) {
 	if ( substr( $sequence, 6, 9 ) eq 'CCCTATCAG' ) {
 		$CriteriaMatched++;
 		$Results{$barcode}->[2]++;
+		$PromoterFound=1;
 	}
 	else {
 		for ( my $i = 0 ; $i <= length($sequence) - 6 ; $i++ ) {
@@ -69,6 +78,7 @@ while ( defined( my $line = <INPUT> ) ) {
 				$CriteriaMatched++;
 				$Results{$barcode}->[2]++;
 				$Offset = $i;
+				$PromoterFound=1;
 				last;
 			}
 		}
@@ -83,22 +93,25 @@ while ( defined( my $line = <INPUT> ) ) {
 	if($promoter eq 'CCCTATCAGTGATAGAGACTCGAG') {
 		$CriteriaMatched++;
 		$Results{$barcode}->[3]++;
+		$PromoterExactlyMatched=1;
 	}
 
 	#Make histogram of where tracrs are found, which will indicate amount of 20nt inserts
 	#Only proceed with those reads where the tracr is in the correct position
 	for(my $i=40;$i<=length($sequence);$i++) {
 		if(substr($sequence,$i,8) eq 'GTTTTAGA') {
+			$TracrFound=1;
 			$Histo{$i-50-$Offset}++;
 			if($i==50+$Offset) {
 				$CriteriaMatched++;
 				$Results{$barcode}->[4]++;
+				$TracrFoundAtCorrectPosition=1;
 			}
 		}	
 	}
 
 	#If all criteria are met, count this read as a correct read
-	if ( $CriteriaMatched == 4 ) {
+	if ( $BarcodeMatched && $PromoterFound && $PromoterExactlyMatched && $TracrFound && $TracrFoundAtCorrectPosition) {
 		$CorrectReads++;
 		$Results{$barcode}->[5]++;
 		print OUTPUT $barcode . $promoter . $gRNA . $tracr . "\n";
