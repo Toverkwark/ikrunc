@@ -74,7 +74,7 @@ while ( defined( my $line = <INPUT> ) ) {
 	}
 	else {
 		for ( my $i = 0 ; $i <= length($sequence) - 6 ; $i++ ) {
-			if ( substr( $sequence, 6 + $i, 9 ) eq 'CCCTATCAG' ) {
+			if ( substr( $sequence, 6 + $i, 9 ) eq 'CCCTATCAG'  || substr($sequence, 6+$i,9) eq 'CCCTNTCAG'){
 				$CriteriaMatched++;
 				$Results{$barcode}->[2]++;
 				$Offset = $i;
