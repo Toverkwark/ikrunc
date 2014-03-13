@@ -111,7 +111,7 @@ while ( defined( my $line = <INPUT> ) ) {
 	}
 
 	#If all criteria are met, count this read as a correct read
-	if ( $BarcodeMatched && $PromoterFound && $PromoterExactlyMatched && $TracrFound && $TracrFoundAtCorrectPosition) {
+	if ( $BarcodeMatched && $PromoterFound && $PromoterExactlyMatched) {
 		$CorrectReads++;
 		$Results{$barcode}->[5]++;
 		print OUTPUT $barcode . $promoter . $gRNA . $tracr . "\n";
