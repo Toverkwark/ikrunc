@@ -33,6 +33,7 @@ while ( defined( my $line = <INPUT> ) ) {
 	$line2    = <INPUT>;
 	$line3    = <INPUT>;
 	$line4    = <INPUT>;
+	chomp($line2);
 	$sequence = $line2;
 
 	$CriteriaMatched = 0;
@@ -46,8 +47,6 @@ while ( defined( my $line = <INPUT> ) ) {
 	else {
 		my $MatchedBarcode = MatchBarcode( $barcode, @Barcodes );
 		if ($MatchedBarcode) {
-
-			#print "$barcode matched to $MatchedBarcode in list @Barcodes\n";
 			$CriteriaMatched++;
 			$barcode = $MatchedBarcode;
 			$Results{$barcode}->[0]++;
@@ -90,7 +89,7 @@ while ( defined( my $line = <INPUT> ) ) {
 	#Only proceed with those reads where the tracr is in the correct position
 	for(my $i=40;$i<=length($sequence);$i++) {
 		if(substr($sequence,$i,8) eq 'GTTTTAGA') {
-			$Histo{$i}++;
+			$Histo{$i-50-$Offset}++;
 			if($i==50+$Offset) {
 				$CriteriaMatched++;
 				$Results{$barcode}->[4]++;
@@ -98,21 +97,23 @@ while ( defined( my $line = <INPUT> ) ) {
 		}	
 	}
 
-        if ( $CriteriaMatched == 4 ) {
-                $CorrectReads++;
-                $Results{$barcode}->[5]++;
-                print OUTPUT $barcode . $promoter . $gRNA . $tracr;
-        }
-
-	
+	#If all criteria are met, count this read as a correct read
+	if ( $CriteriaMatched == 4 ) {
+		$CorrectReads++;
+		$Results{$barcode}->[5]++;
+		print OUTPUT $barcode . $promoter . $gRNA . $tracr . "\n";
+	}
 }
+
+#Output the tracrRNA positional histogram to the report file
 print REPORT "tracrRNAs found relative to expected:\n";
 foreach $HistoDistance (sort (keys %Histo)) {
-	print REPORT "Distance\t" . ($HistoDistance - 50) . "\t" . $Histo{$HistoDistance} . "\n";
+	print REPORT "Distance\t" . ($HistoDistance) . "\t" . $Histo{$HistoDistance} . "\n";
 }
 print REPORT "\n\n";
 
-print REPORT "Barcode\tReads\tOf which by match\tFound Promoters\tCorrect Promoters\tCorrect tracrs\tCompletely correct\n";
+
+print REPORT "Barcode\tReads\tOf which by match\tPromoter seeds found\tCompletely Correct Promoters\ttracr found 20nt after promoter\tCompletely correct\n";
 
 
 foreach $barcode ( keys %Results ) {
