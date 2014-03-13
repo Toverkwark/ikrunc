@@ -90,7 +90,7 @@ while ( defined( my $line = <INPUT> ) ) {
 	$tracr = substr( $sequence, 50 + $Offset);
 
 	#Check if the promoter is intact
-	if($promoter eq 'CCCTATCAGTGATAGAGACTCGAG') {
+	if($promoter eq 'CCCTATCAGTGATAGAGACTCGAG' || $promoter eq 'CCCTNTCAGTGATAGAGACTCGAG'){
 		$CriteriaMatched++;
 		$Results{$barcode}->[3]++;
 		$PromoterExactlyMatched=1;
